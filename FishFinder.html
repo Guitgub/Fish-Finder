@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envio de Imagem para Custom Vision</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input[type="file"] {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Classificação de Imagem</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="sendImage()">Enviar Imagem</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    async function sendImage() {
+        const fileInput = document.getElementById('imageInput');
+        const resultDiv = document.getElementById('result');
+        
+        if (!fileInput.files.length) {
+            resultDiv.textContent = "Por favor, selecione uma imagem primeiro.";
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const apiUrl = "https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/91c32a15-9adb-413d-abab-b2d072c67073/classify/iterations/Fish%20Radar/image";
+        const predictionKey = "adc33e2b60114230b7ab6ec6066be964";
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Prediction-Key": predictionKey,
+                    "Content-Type": "application/octet-stream"
+                },
+                body: file
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const predictions = data.predictions.map(prediction => `${prediction.tagName}: ${(prediction.probability * 100).toFixed(2)}%`).join('<br>');
+            resultDiv.innerHTML = `<strong>Resultados:</strong><br>${predictions}`;
+        } catch (error) {
+            resultDiv.textContent = `Erro ao enviar a imagem: ${error.message}`;
+        }
+    }
+</script>
+
+</body>
+</html>
